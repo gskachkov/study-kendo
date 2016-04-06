@@ -106,7 +106,7 @@
                 handler,
                 handlersIsFunction = typeof handlers === FUNCTION,
                 events;
-
+            //支持传对象的方式,可以一次性绑定多个事件{"eventName":function,...}
             if (handlers === undefined) {
                 for (idx in eventName) {
                     that.bind(idx, eventName[idx]);
@@ -121,12 +121,13 @@
 
                 if (handler) {
                     if (one) {
+                        // 这里先把原来的函数引用赋值给original,然后handler函数调用它,handler.original引用原函数,这样可以保证原函数不会被销毁(闭包),从而让handler能顺利运行
                         original = handler;
                         handler = function() {
                             that.unbind(eventName, handler);
                             original.apply(that, arguments);
                         };
-                        handler.original = original;
+                        handler.original = original;    //用在unbind时和原函数进行比较 p206
                     }
                     events = that._events[eventName] = that._events[eventName] || [];
                     events.push(handler);
@@ -148,13 +149,14 @@
                 handler,
                 handlersIsFunction = typeof handlers === FUNCTION,
                 events;
-
+            // 与bind比少了eventName为对象时,即是一次绑定多个事件的支持
             for (idx = 0, length = eventNames.length; idx < length; idx++) {
                 eventName = eventNames[idx];
 
                 handler = handlersIsFunction ? handlers : handlers[eventName];
 
                 if (handler) {
+                    //与bind比少了 one支持
                     events = that._events[eventName] = that._events[eventName] || [];
                     events.unshift(handler);
                 }
@@ -197,16 +199,16 @@
                 events = that._events[eventName],
                 idx;
 
-            if (eventName === undefined) {
+            if (eventName === undefined) {//销毁所有事件的所有绑定函数 eg: obj.unbind()
                 that._events = {};
             } else if (events) {
-                if (handler) {
+                if (handler) {//销毁特定事件的特定绑定函数 eg: obj.unbind("eventName", functionName)
                     for (idx = events.length - 1; idx >= 0; idx--) {
-                        if (events[idx] === handler || events[idx].original === handler) {
+                        if (events[idx] === handler/*bind*/ || events[idx].original === handler/*one*/) {
                             events.splice(idx, 1);
                         }
                     }
-                } else {
+                } else {//销毁一个事件的所有函数 eg: obj:unbind("eventName")
                     that._events[eventName] = [];
                 }
             }
