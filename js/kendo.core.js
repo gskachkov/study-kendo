@@ -127,7 +127,7 @@
                             that.unbind(eventName, handler);
                             original.apply(that, arguments);
                         };
-                        handler.original = original;    //用在unbind时和原函数进行比较 p206
+                        handler.original = original;    //1.用在unbind时和原函数进行比较 p206 2.引用函数,形成闭包,把函数保存下来
                     }
                     events = that._events[eventName] = that._events[eventName] || [];
                     events.push(handler);
