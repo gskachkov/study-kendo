@@ -441,12 +441,12 @@
             Observable.fn.init.call(this);
 
             this._handlers = {};
-
+            //递归的把对象或者数组变成Observable对象
             for (field in value) {
                 member = value[field];
 
                 if (typeof member === "object" && member && !member.getTime && field.charAt(0) != "_") {
-                    member = that.wrap(member, field, parent);
+                    member = that.wrap(member, field, parent);  //Observable
                 }
 
                 that[field] = member;
@@ -473,7 +473,7 @@
             for (field in this) {
                 if (this.shouldSerialize(field)) {
                     value = this[field];
-
+                    //递归转成json对象
                     if (value instanceof ObservableObject || value instanceof ObservableArray) {
                         value = value.toJSON();
                     }
@@ -492,7 +492,7 @@
 
             if (field === "this") {
                 result = that;
-            } else {
+            } else {    //相当于替换成对象自己调用的安全模式 obj.get("person.name") => (((obj || {}).person || {}).name)
                 result = kendo.getter(field, true)(that);
             }
 

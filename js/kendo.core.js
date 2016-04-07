@@ -2595,7 +2595,7 @@ function pad(number, digits, end) {
                 expression = "." + expression;
             }
 
-            if (safe) {
+            if (safe) { //parent.child.name => ((((d || {}).parent || {}).child|| {}).name) 可以防止不存在的undefined访问属性抛出错误的情况
                 expression = expression.replace(/"([^.]*)\.([^"]*)"/g,'"$1_$DOT$_$2"');
                 expression = expression.replace(/'([^.]*)\.([^']*)'/g,"'$1_$DOT$_$2'");
                 expression = wrapExpression(expression.split("."), paramName);
@@ -2627,7 +2627,7 @@ function pad(number, digits, end) {
             var id = "", i, random;
 
             for (i = 0; i < 32; i++) {
-                random = math.random() * 16 | 0;
+                random = math.random() * 16 | 0;    // 数 | 0 作用是消除小数部分 eg: 123.64 | 0 = 123
 
                 if (i == 8 || i == 12 || i == 16 || i == 20) {
                     id += "-";
