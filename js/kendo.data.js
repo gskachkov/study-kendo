@@ -789,7 +789,7 @@
             originalName,
             id = proto.id,
             functionFields = [];
-        //设置主键关键字
+        //设置主键名称
         if (id) {
             proto.idField = id;
         }
