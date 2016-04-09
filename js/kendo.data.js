@@ -548,7 +548,7 @@
         },
 
         parent: noop,
-
+        //把值包装成observableObject/Array对象,并绑定get,change/change事件监听
         wrap: function(object, field, parent) {
             var that = this;
             var get;
@@ -649,7 +649,7 @@
         "boolean": false,
         "default": ""
     };
-
+    //ref:Model.parse
     function getFieldByName(obj, name) {
         var field,
             fieldName;
@@ -674,7 +674,7 @@
 
                 if (that._initializers) {
                     for (var idx = 0; idx < that._initializers.length; idx++) {
-                         var name = that._initializers[idx];
+                         var name = that._initializers[idx];    //以此调用默认值函数
                          data[name] = that.defaults[name]();
                     }
                 }
@@ -704,7 +704,7 @@
                 parse;
 
             field = fields[field];
-            if (!field) {
+            if (!field) {//?通过值对象来获取值?
                 field = getFieldByName(fields, fieldName);
             }
             if (field) {
@@ -713,7 +713,7 @@
                     parse = parsers[field.type.toLowerCase()];
                 }
             }
-
+            //将设置的值转化成标准类型
             return parse ? parse(value) : value;
         },
 
@@ -726,7 +726,7 @@
         },
 
         editable: function(field) {
-            field = (this.fields || {})[field];
+            field = (this.fields || {})[field]; //先判断字段是否有定义,定义了就根据editable属性判断是否可编辑,不存在默认可编辑
             return field ? field.editable !== false : true;
         },
 
@@ -742,10 +742,10 @@
                 }
             }
         },
-
+        //把传递的数据都包装成observable对象
         accept: function(data) {
             var that = this,
-                parent = function() { return that; },
+                parent = function() { return that; },   //为什么parent要设计成函数而不是属性呢
                 field;
 
             for (field in data) {
@@ -765,12 +765,13 @@
             that.dirty = false;
         },
 
-        isNew: function() {
+        isNew: function() { //this.id会在实例化传入主键字段后改变,如果不传入,那么新创建的对象this._defaultId和this.id是一样的,参考init,define部分
             return this.id === this._defaultId;
         }
     });
 
     Model.define = function(base, options) {
+        //实现对象模型继承
         if (options === undefined) {
             options = base;
             base = Model;
@@ -788,7 +789,7 @@
             originalName,
             id = proto.id,
             functionFields = [];
-
+        //设置主键关键字
         if (id) {
             proto.idField = id;
         }
@@ -800,7 +801,7 @@
         if (id) {
             proto.defaults[id] = proto._defaultId = "";
         }
-
+        //fields的值为数组时转成对象 格式类似 数组格式["name1", {fields:{...}},..] ,对象格式为{"id" : "",fields:{...},...}
         if (toString.call(proto.fields) === "[object Array]") {
             for (idx = 0, length = proto.fields.length; idx < length; idx++) {
                 field = proto.fields[idx];
@@ -818,9 +819,9 @@
             type = field.type || "default";
             value = null;
             originalName = name;
-
+            //确定字段名(键名不一定就是字段名),如果另外指定field,那么就是原来的建名 { keyName:{field:"realName"}}
             name = typeof (field.field) === STRING ? field.field : name;
-
+            //确定默认值
             if (!field.nullable) {
                 value = proto.defaults[originalName !== name ? originalName : name] = field.defaultValue !== undefined ? field.defaultValue : defaultValues[type.toLowerCase()];
 
@@ -828,20 +829,20 @@
                     functionFields.push(name);
                 }
             }
-
+            //确定主键默认值
             if (options.id === name) {
                 proto._defaultId = value;
             }
-
+            //整理默认值,这里用的是原来键名不是真实字段名关联值
             proto.defaults[originalName !== name ? originalName : name] = value;
-
+            //确认对象值类型的parse方法
             field.parse = field.parse || parsers[type];
         }
 
         if (functionFields.length > 0) {
             proto._initializers = functionFields;
         }
-
+        //该对象模型还可以继承 eg var Parent = kendo.data.Model({...}) var Child = Parent.define({...}) Child will extend Parent
         model = base.extend(proto);
         model.define = function(options) {
             return Model.define(model, options);
